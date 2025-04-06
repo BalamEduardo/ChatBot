@@ -31,19 +31,23 @@ async function guardarCita(cita) {
 }
 
 // Función para reagendar una cita en la base de datos
-async function reagendarCita(id, nuevaFecha, nuevaHora) {
+async function reagendarCita(id, nuevaFecha, nuevaHora, nuevoMotivo) {
     try {
-        const query = `UPDATE citas SET fecha = $1, hora = $2 WHERE id = $3`;
-        await client.query(query, [nuevaFecha, nuevaHora, id]);
-        console.log("🔄 Cita     reagendada");
-        return true;
+        const query = `UPDATE citas SET fecha = $1, hora = $2, motivo = $3 WHERE id = $4 RETURNING *`;
+        const result = await client.query(query, [nuevaFecha, nuevaHora, nuevoMotivo, id]);
+        
+        if (result.rows.length > 0) {
+            console.log("✅ Cita reagendada con éxito:", result.rows[0]);
+            return true;
+        } else {
+            console.error("❌ No se encontró la cita para reagendar");
+            return false;
+        }
     } catch (error) {
         console.error("❌ Error al reagendar cita:", error);
         return false;
     }
 }
-
-
 
 // Función para obtener la cita activa de un usuario por su número de teléfono
 async function obtenerCitaActivaPorTelefono(telefono) {
